@@ -13,6 +13,7 @@ from config import (
     UMBRAL_DISTANCIA,
 )
 from src.client import get_client
+from src.index import obtener_coleccion
 from src.retrieve import (
     filtrar_por_umbral,
     formatear_contexto,
@@ -45,20 +46,15 @@ def generar_respuesta(prompt: str) -> str:
     return (response.text or "").strip()
 
 
-def responder(pregunta: str, indice: list[dict] | None = None,
-              top_k: int = TOP_K, umbral_distancia: float = UMBRAL_DISTANCIA) -> dict:
-    """Pipeline RAG online completo: retrieve -> filtrar -> prompt -> generate.
-
-    `indice` es opcional: si no se pasa, usa el índice por defecto (data/).
-    Pasar uno explícito es útil para tests sin depender de datos reales.
-    """
+def responder(pregunta: str, coleccion=None, top_k: int = TOP_K,
+              umbral_distancia: float = UMBRAL_DISTANCIA) -> dict:
     pregunta = (pregunta or "").strip()
     if not pregunta:
         return {"respuesta": "", "contexto": "", "fuentes": [],
                  "error": "La pregunta no puede estar vacía."}
 
-    indice = indice if indice is not None else obtener_indice()
-    chunks = recuperar(pregunta, indice, top_k=top_k)
+    coleccion = coleccion if coleccion is not None else obtener_coleccion()
+    chunks = recuperar(pregunta, coleccion, top_k=top_k)
     chunks = filtrar_por_umbral(chunks, umbral_distancia)
     contexto = formatear_contexto(chunks)
 
@@ -72,7 +68,6 @@ def responder(pregunta: str, indice: list[dict] | None = None,
 
     return {"respuesta": respuesta, "contexto": contexto,
              "fuentes": fuentes, "error": None}
-
 
 def rag_ask(consulta: str) -> str:
     """Envoltorio simple sobre responder(), pensado para el proyecto de Agentes."""

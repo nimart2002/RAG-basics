@@ -1,78 +1,47 @@
-"""Retrieval en memoria: pregunta -> top-K chunks + contexto.
+"""Retrieval: pregunta -> top-K chunks + contexto, vía ChromaDB.
 
-Versión SIN base de datos vectorial: el "índice" es una lista de dicts
-en RAM. Cuando se añada ChromaDB, esta misma interfaz (recuperar,
-formatear_contexto, fuentes_desde_chunks) se mantiene igual; solo cambia
-cómo se guarda y busca el índice por dentro.
+Referencia:
+- referencia/01_implementar_retriever.py
+- referencia/01_evaluar_y_ajustar_retrieval.py
 """
 
-import math
 from pathlib import Path
 
-from langchain_core.documents import Document
-
-from config import TOP_K
-from src.embed import embeddear_consulta, embeddear_textos
+from config import TOP_K, UMBRAL_DISTANCIA
+from src.embed import embeddear_consulta
 
 
-def similitud_coseno(v1: list[float], v2: list[float]) -> float:
-    """Coseno del ángulo entre dos vectores: 1 = idénticos en dirección."""
-    producto_punto = sum(a * b for a, b in zip(v1, v2))
-    norma1 = math.sqrt(sum(a * a for a in v1))
-    norma2 = math.sqrt(sum(b * b for b in v2))
-    if norma1 == 0 or norma2 == 0:
-        return 0.0
-    return producto_punto / (norma1 * norma2)
+def recuperar(pregunta: str, coleccion, top_k: int = TOP_K) -> list[dict]:
+    """Embeddea la pregunta, consulta la colección de Chroma y devuelve top_k chunks."""
+    vector = embeddear_consulta(pregunta)
+    n = min(top_k, coleccion.count())
+    if n == 0:
+        return []
 
+    resultados = coleccion.query(
+        query_embeddings=[vector],
+        n_results=n,
+        include=["documents", "metadatas", "distances"],
+    )
 
-def construir_indice(chunks: list[Document]) -> list[dict]:
-    """Embeddea los chunks y los guarda en una lista en memoria.
-
-    Cada entrada: {id, text, metadata, vector}. Esto sustituye a
-    src/index.py (ChromaDB) mientras trabajemos sin base de datos.
-    """
-    textos = [c.page_content for c in chunks]
-    vectores = embeddear_textos(textos)
-
-    indice = []
-    for i, (chunk, vector) in enumerate(zip(chunks, vectores)):
-        indice.append({
-            "id": f"chunk_{i}",
-            "text": chunk.page_content,
-            "metadata": dict(chunk.metadata),
-            "vector": vector,
+    chunks = []
+    for i, doc_id in enumerate(resultados["ids"][0]):
+        chunks.append({
+            "id": doc_id,
+            "text": resultados["documents"][0][i],
+            "metadata": resultados["metadatas"][0][i],
+            "distance": resultados["distances"][0][i],
         })
-    return indice
+    return chunks
 
 
-def recuperar(pregunta: str, indice: list[dict], top_k: int = TOP_K) -> list[dict]:
-    """Embeddea la pregunta y devuelve los top_k chunks más similares.
-
-    Cada resultado incluye 'distance' (menor = más cercano), igual
-    convención que usará ChromaDB más adelante.
-    """
-    vector_pregunta = embeddear_consulta(pregunta)
-
-    candidatos = []
-    for item in indice:
-        similitud = similitud_coseno(vector_pregunta, item["vector"])
-        candidatos.append({
-            "id": item["id"],
-            "text": item["text"],
-            "metadata": item["metadata"],
-            "distance": 1 - similitud,
-        })
-
-    candidatos.sort(key=lambda c: c["distance"])  # menor distancia primero
-    return candidatos[:top_k]
+def filtrar_por_umbral(chunks: list[dict], umbral: float = UMBRAL_DISTANCIA) -> list[dict]:
+    """Descarta chunks cuya distancia supere el umbral (poco relevantes)."""
+    return [c for c in chunks if c["distance"] <= umbral]
 
 
 def formatear_contexto(chunks: list[dict]) -> str:
-    """Chunks -> bloque de texto legible con delimitadores y fuente citada.
-    Es lo que va a recibir el LLM en el prompt.
-
-    Cada fragmento es asociado con su distancia a la pregunta original del usuario.
-    """
+    """Chunks -> bloque de texto legible con delimitadores y fuente citada."""
     if not chunks:
         return "(sin resultados)"
 
@@ -88,10 +57,7 @@ def formatear_contexto(chunks: list[dict]) -> str:
 
 
 def fuentes_desde_chunks(chunks: list[dict]) -> list[str]:
-    """Nombres de archivo únicos a partir de la metadata recuperada.
-    Construye una lista corta de nombres de archivo. Será usada en la construcción del Streamlit.
-
-    """
+    """Nombres de archivo únicos a partir de la metadata recuperada."""
     fuentes = []
     for c in chunks:
         nombre = Path(str(c["metadata"].get("source", "?"))).name
