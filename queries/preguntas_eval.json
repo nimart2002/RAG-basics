@@ -1,0 +1,69 @@
+{
+  "preguntas": [
+    {
+      "id": 1,
+      "texto": "¿Qué es el ELBO (Evidence Lower BOund) en un VAE?",
+      "fuente_esperada": "Kingma(2022).pdf"
+    },
+    {
+      "id": 2,
+      "texto": "¿Qué papel juega la divergencia KL en el entrenamiento de un autoencoder variacional?",
+      "fuente_esperada": "Kingma(2022).pdf"
+    },
+    {
+      "id": 3,
+      "texto": "¿Cómo se modela la memoria episódica antes de la consolidación según Spens y Burgess?",
+      "fuente_esperada": "Spens(2023).pdf"
+    },
+    {
+      "id": 4,
+      "texto": "¿Qué es una red de Hopfield moderna (MHN) y qué papel tiene en la consolidación de memoria?",
+      "fuente_esperada": "Spens(2023).pdf"
+    },
+    {
+      "id": 5,
+      "texto": "¿Qué significa que una red generativa aprenda a partir de representaciones 'replayed'?",
+      "fuente_esperada": "Spens(2023).pdf"
+    },
+    {
+      "id": 6,
+      "texto": "¿Qué es un esquema (schema) y en qué se diferencia de una simple categoría de clasificación?",
+      "fuente_esperada": "glosario_conceptos.md"
+    },
+    {
+      "id": 7,
+      "texto": "¿Qué es un paisaje de energía en el contexto de modelos de memoria?",
+      "fuente_esperada": "glosario_conceptos.md"
+    },
+    {
+      "id": 8,
+      "texto": "¿Qué mide la tipicidad de un ejemplo respecto a su categoría?",
+      "fuente_esperada": "glosario_conceptos.md"
+    },
+    {
+      "id": 9,
+      "texto": "¿Qué relación establecen Parga et al. entre las computaciones emergentes de redes neuronales artificiales entrenadas y el cerebro real?",
+      "fuente_esperada": "Parga(2022).pdf"
+    },
+    {
+      "id": 10,
+      "texto": "¿Qué significa que una computación sea 'emergente' en una red neuronal entrenada, según este paper?",
+      "fuente_esperada": "Parga(2022).pdf"
+    },
+    {
+      "id": 11,
+      "texto": "¿Qué métodos se usan para comparar las representaciones internas de una red neuronal artificial con datos de cerebros reales?",
+      "fuente_esperada": "Parga(2022).pdf"
+    },
+    {
+      "id": 12,
+      "texto": "¿Cuál es la capital de Francia?",
+      "fuente_esperada": null
+    },
+    {
+      "id": 13,
+      "texto": "¿Cuál es la receta tradicional de la paella valenciana?",
+      "fuente_esperada": null
+    }
+  ]
+}

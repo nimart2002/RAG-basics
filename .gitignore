@@ -1,0 +1,17 @@
+# Entorno y secretos
+.venv/
+.env
+
+# Python
+__pycache__/
+*.pyc
+
+# Índice vectorial y ficheros intermedios (se regeneran desde data/)
+output/
+chroma/
+*.egg-info/
+
+# Editor / SO
+.vscode/
+.idea/
+.DS_Store

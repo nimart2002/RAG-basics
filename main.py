@@ -11,13 +11,15 @@ App Streamlit: streamlit run app.py
 
 import argparse
 import sys
+import time
 
-from config import DATA_DIR, TOP_K
+from config import DATA_DIR, EMBEDDING_MODEL, GENERATION_MODEL, TOP_K
 from src.chunk import trocear
 from src.embed import embeddear_textos
 from src.generate import responder
 from src.index import construir_indice, obtener_coleccion
 from src.load import cargar_corpus
+from src.logging_utils import log_query
 from src.retrieve import formatear_contexto, recuperar
 
 
@@ -43,15 +45,26 @@ def _obtener_coleccion_o_salir():
 def cmd_query(pregunta: str, top_k: int) -> None:
     """Solo retrieval: imprime los chunks recuperados y sus fuentes."""
     coleccion = _obtener_coleccion_o_salir()
+
+    inicio = time.perf_counter()
     chunks = recuperar(pregunta, coleccion, top_k=top_k)
+    tiempo_s = time.perf_counter() - inicio
+
+    log_query(pregunta, top_k, len(chunks), tiempo_s, EMBEDDING_MODEL)
     print(formatear_contexto(chunks))
 
 
 def cmd_ask(pregunta: str, top_k: int) -> None:
     """RAG completo: imprime respuesta + fuentes (usa src.generate.responder)."""
     coleccion = _obtener_coleccion_o_salir()
-    resultado = responder(pregunta, coleccion=coleccion, top_k=top_k)
 
+    inicio = time.perf_counter()
+    resultado = responder(pregunta, coleccion=coleccion, top_k=top_k)
+    tiempo_s = time.perf_counter() - inicio
+
+    log_query(pregunta, top_k, len(resultado["chunks"]), tiempo_s, GENERATION_MODEL,
+              abstuvo=resultado["error"] is not None)
+              
     if resultado["error"]:
         print("[SIN RESPUESTA]", resultado["error"])
         if resultado["contexto"] and resultado["contexto"] != "(sin resultados)":
@@ -64,7 +77,7 @@ def cmd_ask(pregunta: str, top_k: int) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Sistema RAG")
+    parser = argparse.ArgumentParser(description="Sistema RAG - CLI")
     parser.add_argument("--index", action="store_true", help="Reconstruye el índice desde data/")
     parser.add_argument("--recreate-index", action="store_true",
                          help="Con --index: borra la colección anterior antes de reindexar")
