@@ -1,4 +1,4 @@
-"""Embeddings con Gemini (Parte 2 / Día 3).
+"""Embeddings con Gemini.
 
 Referencia: referencia/01_embeddings.py
 

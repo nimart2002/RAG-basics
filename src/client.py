@@ -1,7 +1,7 @@
 """Cliente compartido de la API de Gemini.
 
 Un único cliente para todo el proyecto (embeddings y generación lo
-comparten), en vez de que cada módulo cree y cachee el suyo por separado.
+comparten), en vez de que cada módulo cree el suyo por separado.
 """
 
 from google import genai

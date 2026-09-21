@@ -5,8 +5,6 @@ Uso:
   python main.py --index --recreate-index    # ídem, forzando borrar la colección anterior
   python main.py --query "pregunta"          # online: solo retrieval + contexto
   python main.py --ask "pregunta"            # online: RAG completo (retrieval + generación)
-
-App Streamlit: streamlit run app.py
 """
 
 import argparse
